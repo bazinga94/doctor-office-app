@@ -132,3 +132,6 @@ dist
 
 # Mac OS
 .DS_Store
+
+# Kubernetes Secrets
+k8s/secrets/

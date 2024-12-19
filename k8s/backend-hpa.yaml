@@ -13,10 +13,22 @@ spec:
   metrics:
   - type: Resource
     resource:
-      name: cpu
+      name: memory
       target:
         type: Utilization
         averageUtilization: 50  # CPU usage threshold
   behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      selectPolicy: Max
+      policies:
+        - type: Percent
+          value: 200  # Scale up by up to 200%
+          periodSeconds: 30  # Set periodSeconds to a valid value (e.g., 30)
     scaleDown:
       stabilizationWindowSeconds: 60
+      selectPolicy: Min
+      policies:
+        - type: Percent
+          value: 50  # Scale down by at least 50%
+          periodSeconds: 30  # Set periodSeconds to a valid value (e.g., 30)

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
+  namespace: frontend
 spec:
   replicas: 2
   selector:
@@ -12,9 +13,11 @@ spec:
       labels:
         app: frontend
     spec:
+      imagePullSecrets:
+      - name: ecr-secret
       containers:
       - name: frontend
-        image: 619715105204.dkr.ecr.us-east-1.amazonaws.com/docktor-app/doctor-office-frontend:v1
+        image: 913524912273.dkr.ecr.us-east-1.amazonaws.com/docktor-app/doctor-office-frontend:latest
         resources:  # Set resource requests and limits for stable performance and HPA support.
           requests:
             cpu: "100m"   # min CPU requests
@@ -24,13 +27,20 @@ spec:
             memory: "512Mi"  # max memory requests
         ports:
         - containerPort: 3001
-#      imagePullSecrets:
-#      - name: myregistry-secret
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: frontend-nginx-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend-service
+  namespace: frontend
 spec:
   selector:
     app: frontend
@@ -39,3 +49,4 @@ spec:
       port: 80
       targetPort: 3001
   # type: LoadBalancer
+  type: NodePort

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
+  namespace: backend
 spec:
   replicas: 2
   selector:
@@ -12,9 +13,11 @@ spec:
       labels:
         app: backend
     spec:
+      imagePullSecrets:
+      - name: ecr-secret
       containers:
       - name: backend
-        image: 619715105204.dkr.ecr.us-east-1.amazonaws.com/docktor-app/doctor-office-backend:stateful
+        image: 913524912273.dkr.ecr.us-east-1.amazonaws.com/docktor-app/doctor-office-backend:latest
         resources:  # Set resource requests and limits for stable performance and HPA support.
           requests:
             cpu: "100m"   # min CPU requests
@@ -26,15 +29,20 @@ spec:
         - containerPort: 3000
         env:
         - name: MONGODB_URL
-          value: "mongo-0.mongo.default.svc.cluster.local,mongo-1.mongo.default.svc.cluster.local,mongo-2.mongo.default.svc.cluster.local:27017" #"mongo-service.default.svc.cluster.local:27017"  
-#      imagePullSecrets:
-#      - name: myregistry-secret
-
+          # value: "mongo-0.mongo.default.svc.cluster.local,mongo-1.mongo.default.svc.cluster.local,mongo-2.mongo.default.svc.cluster.local:27017"
+          # value: "mongo-service.default.svc.cluster.local:27017"
+          value: "mongo-service.database.svc.cluster.local:27017" 
+        - name: MONGO_INITDB_ROOT_PASSWORD  # Set the MongoDB root password environment variable
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret  # Reference the Secret containing the password
+              key: mongo_root_password  # The key in the Secret where the password is stored
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: backend-service
+  namespace: backend
 spec:
   selector:
     app: backend

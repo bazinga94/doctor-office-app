@@ -1,0 +1,361 @@
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: frontend-to-backend-policy
+#   namespace: frontend
+# spec:
+#   podSelector: {}
+#   ingress:
+#     - from:
+#         - namespaceSelector:
+#             matchLabels:
+#               name: backend
+#       ports:
+#         - protocol: TCP
+#           port: 80  # frontend에서 backend로 80번 포트만 허용
+#   policyTypes:
+#     - Ingress
+
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: backend-to-database-policy
+#   namespace: backend
+# spec:
+#   podSelector: {}
+#   ingress: []  # ingress는 허용하지 않음
+#   egress:
+#     - to:
+#         - namespaceSelector:
+#             matchLabels:
+#               name: database
+#       ports:
+#         - protocol: TCP
+#           port: 27017  # backend에서 database로 27017 포트만 허용
+#   policyTypes:
+#     - Egress
+
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: frontend-deny-all
+#   namespace: frontend
+# spec:
+#   podSelector: {}
+#   ingress: []  # 모든 ingress 차단
+#   egress:
+#     - to:
+#         - namespaceSelector:
+#             matchLabels:
+#               name: backend
+#       ports:
+#         - protocol: TCP
+#           port: 80  # frontend에서 backend로 80번 포트만 허용
+#   policyTypes:
+#     - Egress
+
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: backend-deny-all
+#   namespace: backend
+# spec:
+#   podSelector: {}
+#   ingress: []  # 모든 ingress 차단
+#   egress:
+#     - to:
+#         - namespaceSelector:
+#             matchLabels:
+#               name: database
+#       ports:
+#         - protocol: TCP
+#           port: 27017  # backend에서 database로 27017 포트만 허용
+#   policyTypes:
+#     - Egress
+
+
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: frontend-deny-all
+#   namespace: frontend
+# spec:
+#   podSelector: {}
+#   ingress: []
+#   egress: []
+#   policyTypes:
+#     - Ingress
+#     - Egress
+
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: backend-deny-all
+#   namespace: backend
+# spec:
+#   podSelector: {}
+#   ingress: []
+#   egress: []
+#   policyTypes:
+#     - Ingress
+#     - Egress
+
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: default-deny-all
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+#   - Egress
+
+# # frontend namespace의 모든 egress 트래픽 차단
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: deny-all-egress
+#   namespace: frontend
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Egress
+#   egress:
+#   - to:
+#     - namespaceSelector:
+#         matchLabels:
+#           kubernetes.io/metadata.name: kube-system
+#     ports:
+#     - port: 53
+#       protocol: UDP
+#     - port: 53
+#       protocol: TCP
+
+# ---
+# # backend namespace의 모든 ingress 트래픽 차단
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: deny-all-ingress
+#   namespace: back
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+#   ingress: []
+
+#---------------------------------------------------
+
+# # frontend namespace의 정책
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: frontend-policy
+#   namespace: frontend
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Egress
+#   egress:
+#   # DNS 쿼리 허용
+#   - to:
+#     - namespaceSelector:
+#         matchLabels:
+#           kubernetes.io/metadata.name: kube-system
+#     ports:
+#     - port: 53
+#       protocol: UDP
+#     - port: 53
+#       protocol: TCP
+#   # backend로의 통신 허용
+#   - to:
+#     - namespaceSelector:
+#         matchLabels:
+#           name: backend
+#     ports:
+#     - port: 3000  # backend 서비스 포트
+
+# ---
+# # backend namespace의 정책
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: backend-policy
+#   namespace: backend
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+#   ingress:
+#   # frontend로부터의 통신 허용
+#   - from:
+#     - namespaceSelector:
+#         matchLabels:
+#           name: frontend
+#     ports:
+#     - port: 3000  # backend 서비스 포트
+
+# # frontend namespace의 정책
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: frontend-policy
+#   namespace: frontend
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+#   - Egress
+#   ingress: []  # frontend로의 모든 수신 트래픽 차단
+#   egress:
+#   # DNS 쿼리 허용
+#   - to:
+#     - namespaceSelector:
+#         matchLabels:
+#           kubernetes.io/metadata.name: kube-system
+#     ports:
+#     - port: 53
+#       protocol: UDP
+#     - port: 53
+#       protocol: TCP
+#   # backend로의 통신만 허용
+#   - to:
+#     - namespaceSelector:
+#         matchLabels:
+#           name: backend
+#     ports:
+#     - port: 3000
+
+# ---
+# # backend namespace의 정책
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: backend-policy
+#   namespace: backend
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+#   - Egress
+#   ingress:
+#   # frontend로부터의 통신만 허용
+#   - from:
+#     - namespaceSelector:
+#         matchLabels:
+#           name: frontend
+#     ports:
+#     - port: 3000
+#   egress:
+#   # database로의 통신만 허용
+#   - to:
+#     - namespaceSelector:
+#         matchLabels:
+#           name: database  # database 네임스페이스
+#     ports:
+#     - port: 27017  # 예시로 MongoDB 포트 사용
+
+# ---
+# # database namespace의 정책
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: database-policy
+#   namespace: database
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+#   ingress:
+#   # backend로부터의 통신만 허용
+#   - from:
+#     - namespaceSelector:
+#         matchLabels:
+#           name: backend
+#     ports:
+#     - port: 27017  # 예시로 MongoDB 포트 사용
+
+# Network policy for the frontend namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-policy
+  namespace: frontend
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress: []  # Block all incoming traffic to the frontend
+  egress:
+  # Allow DNS queries
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  # Allow communication only to the backend
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: backend
+    ports:
+    - port: 3000
+
+---
+# Network policy for the backend namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-policy
+  namespace: backend
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow communication only from the frontend
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: frontend
+    ports:
+    - port: 3000
+  egress:
+  # Allow communication only to the database
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: database  # Database namespace
+    ports:
+    - port: 27017  # Example using MongoDB port
+
+---
+# Network policy for the database namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-policy
+  namespace: database
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow communication only from the backend
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: backend
+    ports:
+    - port: 27017  # Example using MongoDB port

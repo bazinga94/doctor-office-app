@@ -7,8 +7,19 @@ metadata:
 
 managedNodeGroups:
   - name: eks-docktor-app-mng
-    instanceType: t2.medium
+    instanceType: t3.medium # or m5.large
     desiredCapacity: 2
+    minSize: 2       # minimum nodes
+    maxSize: 5       # maximum nodes
+
+vpc:
+  id: "vpc-0a9dfb8d783ed8e51"
+  subnets:
+    private:  # use private subnets
+      private-1:
+        id: "subnet-030253d9036e2f413"
+      private-2:
+        id: "subnet-06613d1e4d026d704"
 
 iam:
   withOIDC: true
